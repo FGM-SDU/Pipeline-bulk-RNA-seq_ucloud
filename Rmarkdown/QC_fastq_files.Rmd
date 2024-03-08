@@ -32,12 +32,12 @@ This Bash script is designed to perform quality control (QC) on paired-end FASTQ
    * Set the modules path to
     **FGM \> Utilities \> App \> easybuild**
 
-  ![](../img/terminal_slurm.png)
+  ![](../Img/terminal_slurm.png)
 
    * Include the References folder
   **FGM \> References \> References**
 
-  ![](../img/terminal_folders.png)
+  ![](../Img/terminal_folders.png)
 
    * Include your Scripts folder and the folder with the fastq.gz files.
 
