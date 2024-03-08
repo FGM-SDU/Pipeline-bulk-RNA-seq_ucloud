@@ -42,11 +42,11 @@ isoform level DGE analysis.
     - - To process several samples consider requesting nodes \> 1
     - Set the modules path to **FGM \> Utilities \> App \> easybuild**
 
-    ![](../img/terminal_slurm.png)
+    ![](../Img/terminal_slurm.png)
 
     - Include the References folder **FGM \> References \> References**
 
-    ![](../img/terminal_folders.png)
+    ![](../Img/terminal_folders.png)
 
     - Include your Scripts folder and the folder with the fastq.gz
       files.
@@ -74,9 +74,8 @@ isoform level DGE analysis.
     - **-t:** include Salmon alignment for isoform-level differential
       gene expression.
 
-    For several samples you can use a for loop:
-
-        for i in *R1_001.fastq.gz; do sbatch -J <job_name> path_to/Scripts_folder/pe_align_rnaseq_v2_multigenome.sh -g <mm10|mm39|hg38> $i; sleep 1; done
+    For several samples you can use a for loop:  
+    `for i in *R1_001.fastq.gz; do sbatch -J <job_name> path_to/Scripts_folder/pe_align_rnaseq_v2_multigenome.sh -g <mm10|mm39|hg38> $i; sleep 1; done`
 
 5.  **Monitor Job:** You can monitor the job using the SLURM commands,
     such as squeue, scontrol show job <job-id>, and check the log files
