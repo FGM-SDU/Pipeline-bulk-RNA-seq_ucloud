@@ -1,0 +1,10 @@
+Package: Pipeline bulk-RNA-seq_UCLOUD
+Title: Pipeline for bulk RNA-seq
+Version: 1.0
+Authors@R: 
+    c(person("Victor","Enrique", "Goitea","victorg@bmb.sdu.dk", role = c("aut", "cre"))
+Description: This package contains guides for processing of RNA-seq data within UCloud-FGM @ SDU.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
