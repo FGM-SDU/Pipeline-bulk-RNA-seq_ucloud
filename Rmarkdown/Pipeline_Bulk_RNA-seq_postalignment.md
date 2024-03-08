@@ -3,13 +3,13 @@ Quality Control Pipeline of fastq files
 Victor Enrique Goitea
 2024-03-05
 
+- [Quality Control Pipeline of fastq files](#quality-control-pipeline-of-fastq-files)
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Usage](#usage)
 - [Description](#description)
 - [Output](#output)
-- [Output files reorganization
-  (optional)](#output-files-reorganization-optional)
+- [Output files reorganization (optional)](#output-files-reorganization-optional)
   - [Folder Structure:](#folder-structure)
   - [Creating a Matrix of RawCounts:](#creating-a-matrix-of-rawcounts)
 
@@ -48,11 +48,11 @@ bioinformatics tools and workflows.
     - To process several samples consider requesting nodes \> 1
     - Set the modules path to **FGM \> Utilities \> App \> easybuild**
 
-    ![](../img/terminal_slurm.png)
+    ![](../Img/terminal_slurm.png)
 
     - Include the References folder **FGM \> References \> References**
 
-    ![](../img/terminal_folders.png)
+    ![](../Img/terminal_folders.png)
 
     - Include your Scripts folder and the folder with the bam files and
 

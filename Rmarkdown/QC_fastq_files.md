@@ -3,6 +3,7 @@ Quality Control Pipeline of fastq files
 Victor Enrique Goitea
 2024-03-01
 
+- [Quality Control Pipeline of fastq files](#quality-control-pipeline-of-fastq-files)
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Usage](#usage)
@@ -43,11 +44,11 @@ on a SLURM-based cluster.
     - To process several samples consider requesting nodes \> 1
     - Set the modules path to **FGM \> Utilities \> App \> easybuild**
 
-![](../img/terminal_slurm.png)
+![](../Img/terminal_slurm.png)
 
 - Include the References folder **FGM \> References \> References**
 
-![](../img/terminal_folders.png)
+![](../Img/terminal_folders.png)
 
 - Include your Scripts folder and the folder with the fastq.gz files.
 
