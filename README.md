@@ -14,15 +14,15 @@ preprocessing steps to prepare the data for downstream analysis (read counting, 
 
 ## Access to the guides
 
-1. [**Quality Control of fastq files**](https://github.com/MandrupLab/Pipeline-bulk-RNA-seq_ucloud/blob/main/Rmarkdown/QC_fastq_files.md)
+1. [**Quality Control of fastq files**](https://github.com/FGM-SDU/Pipeline-bulk-RNA-seq_ucloud/blob/main/Rmarkdown/QC_fastq_files.md)
 Runs FASTQC, Fastq_Screen and AdapterRemoval2.
 
-2. [**Alignment of RNA-seq data using STAR (and optionally Salmon)**](https://github.com/MandrupLab/Pipeline-bulk-RNA-seq_ucloud/blob/main/Rmarkdown/Pipeline_Bulk_RNA-seq_aligning.Rmd)
+2. [**Alignment of RNA-seq data using STAR (and optionally Salmon)**](https://github.com/FGM-SDU/Pipeline-bulk-RNA-seq_ucloud/blob/main/Rmarkdown/Pipeline_Bulk_RNA-seq_aligning.md)
 
-3. [**Postalignment of BAM files - Read counting**](https://github.com/MandrupLab/Pipeline-bulk-RNA-seq_ucloud/blob/main/Rmarkdown/Pipeline_Bulk_RNA-seq_postalignment.md)
+3. [**Postalignment of BAM files - Read counting**](https://github.com/FGM-SDU/Pipeline-bulk-RNA-seq_ucloud/blob/main/Rmarkdown/Pipeline_Bulk_RNA-seq_postalignment.md)
 Read counting is done by FeatureCounts.
 
-4. [**Organize files by category**](https://github.com/MandrupLab/Pipeline-bulk-RNA-seq_ucloud/blob/main/Rmarkdown/Pipeline_Bulk_RNA-seq_postalignment.md)
+4. [**Organize files by category**](https://github.com/FGM-SDU/Pipeline-bulk-RNA-seq_ucloud/blob/main/Rmarkdown/Pipeline_Bulk_RNA-seq_postalignment.md)
 
 ## General Usage
 1.  Clone Repository and copy the script to your Scripts folder
@@ -42,11 +42,11 @@ Read counting is done by FeatureCounts.
     - To process several samples consider requesting nodes \> 1
     - Set the modules path to **FGM \> Utilities \> App \> easybuild**
 
-![](./img/terminal_slurm.png)
+![](./Img/terminal_slurm.png)
 
 - Include the References folder **FGM \> References \> References**
 
-![](./img/terminal_folders.png)
+![](./Img/terminal_folders.png)
 
 - Include your Scripts folder and the folder with the fastq.gz/bam files.
 
