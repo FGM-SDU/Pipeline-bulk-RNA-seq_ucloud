@@ -496,7 +496,7 @@ echo "Deetools Coverages Profiles: RPKM (per bin) = number of reads per bin / (n
 # bin size 10 bp
 # The smooth length defines a window, larger than the binSize, to average the number of reads. For example, if the –binSize is set to 20 and the –smoothLength is set to 60, then, for each bin, the average of the bin and its left and right neighbors is considered.
 
-bamCoverage -b ${FINAL_MARKDUP_BAM_FILE} -o ${BIGWIG_COVERAGE} -bs 10 -e --normalizeUsing RPKM  -p "${OMP_NUM_THREADS}" --samFlagExclude 780 # -bl ${BLACKLIST} do not use blacklist in RNA-seq
+bamCoverage -b ${FINAL_MARKDUP_BAM_FILE} -o ${BIGWIG_COVERAGE} -bs 10 --normalizeUsing RPKM  -p "${OMP_NUM_THREADS}" --samFlagExclude 780 # -bl ${BLACKLIST} do not use blacklist in RNA-seq
 
 END_SUBPROCESS=$(date +%s)
 RUNTIME_SUBPROCESS=$((END_SUBPROCESS-START_SUBPROCESS))

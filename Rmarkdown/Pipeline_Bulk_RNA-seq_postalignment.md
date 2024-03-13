@@ -1,9 +1,9 @@
-Quality Control Pipeline of fastq files
+Bulk RNA-seq Postalignment Pipeline
 ================
 Victor Enrique Goitea
 2024-03-05
 
-- [Quality Control Pipeline of fastq files](#quality-control-pipeline-of-fastq-files)
+- [Bulk RNA-seq Postalignment Pipeline](#bulk-rna-seq-postalignment-pipeline)
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Usage](#usage)
@@ -12,6 +12,7 @@ Victor Enrique Goitea
 - [Output files reorganization (optional)](#output-files-reorganization-optional)
   - [Folder Structure:](#folder-structure)
   - [Creating a Matrix of RawCounts:](#creating-a-matrix-of-rawcounts)
+- [Create a Multiqc report:](#create-a-multiqc-report)
 
 # Overview
 
@@ -30,19 +31,14 @@ bioinformatics tools and workflows.
 
 # Usage
 
-1.  Clone Repository and copy the script to your Scripts folder
-
-        git clone <repository-url> 
-        cd <repository-directory> 
-
-2.  Modify SLURM Parameters (Optional): Open the script
+1.  Modify SLURM Parameters (Optional): Open the script
     (**pe_postalign_RNA-seq_multigenome.sh**) and modify SLURM
     parameters at the beginning of the file, such as account, output
     file, email notifications, nodes, memory, CPU cores, and runtime.
     Alternatively, you can modify these parameters on-the-fly when
     executing the script.
 
-3.  On UCloud, start a **Terminal Ubuntu** run:
+2.  On UCloud, start a **Terminal Ubuntu** run:
 
     - Enable **Slurm cluster**
     - To process several samples consider requesting nodes \> 1
@@ -59,6 +55,8 @@ bioinformatics tools and workflows.
     - **Notes:**
 
       - Match the job CPUs to the amounts requested in the script.
+      - Make sure the scripts have executing permission. If not run:
+        `chmod 700 script.sh`
       - If you modify the memory parameter in the script, specify 5-10%
         less than the memory available in the terminal run.
       - Although it is not necessary to enable **tmux**, it is a good
@@ -66,8 +64,10 @@ bioinformatics tools and workflows.
       - The script also uses some files in References/Multiqc/ to make
         some metric files compatible with Multiqc.
 
-4.  **Run the Script:** Submit the script to the SLURM cluster:
-    `sbatch -J <job_name> path_to/Scripts_folder/pe_postalign_RNA-seq_multigenome.sh -g <mm10|mm39|hg38> <input-bam-file>`
+3.  **Run the Script:** Submit the script to the SLURM cluster:
+    <!-- -->
+        sbatch -J <job_name> path_to/Scripts_folder/pe_postalign_RNA-seq_multigenome.sh -g <mm10|mm39|hg38> <input-bam-file> 
+
     **Required Arguments**
 
     - **-g:** specify the genome to use (mm10, mm39, or hg38).
@@ -75,9 +75,10 @@ bioinformatics tools and workflows.
       file (R1).
 
     For several samples you can use a for loop:
-    `for i in *.bam; do sbatch -J <job_name> path_to/Scripts_folder/pe_postalign_RNA-seq_multigenome.sh -g <mm10|mm39|hg38> $i; sleep 1; done`
+    <!-- -->
+        for i in *.bam; do sbatch -J <job_name> path_to/Scripts_folder/pe_postalign_RNA-seq_multigenome.sh -g <mm10|mm39|hg38> $i; sleep 1; done
 
-5.  **Monitor Job:** You can monitor the job using the SLURM commands,
+4.  **Monitor Job:** You can monitor the job using the SLURM commands,
     such as **squeue**, **scontrol show job <job-id>**, and check the
     log files generated.
 
@@ -105,11 +106,13 @@ This script performs the following main tasks:
     to remove low-quality reads and ensure proper alignment (**samtools
     -q 30 -F 780**).
 4.  **Indexing:** indexes the final BAM files.
-5.  **Create Tag Directories:** generates a sample tag directory using
+5.  **Bigwig coverage tracks:** generates coverage tracks with bin size
+    10, RPKM normalized by bamCoverage (Deeptools).
+6.  **Create Tag Directories:** generates a sample tag directory using
     Homer for downstream analysis.
-6.  **Reads Counting:** Count reads mapped to features (e.g., genes)
+7.  **Reads Counting:** Count reads mapped to features (e.g., genes)
     using FeatureCounts (**-p –countReadPairs -t exon**).
-7.  **GENCODE GTF Version Information:**
+8.  **GENCODE GTF Version Information:**
     - **Human (GRCh38):** v44
     - **Mouse (GRCm38 - mm10):** M25
     - **Mouse (GRCm39 - mm39):** M33
@@ -121,9 +124,8 @@ alignment statistics, and processed BAM files ready for downstream
 analysis. The script store the output files in a directory of basename
 <input-filename> (Main output directory).
 
-**file-featurecounts.txt:** Table containing the output of
-FeatureCounts. **file-RawCounts.txt:** Two-column table containing
-GeneID and raw counts.
+**file-featurecounts.txt:** Table containing the output of FeatureCounts.  
+**file-RawCounts.txt:** Two-column table containing GeneID and raw counts.
 
 # Output files reorganization (optional)
 
@@ -147,6 +149,8 @@ provided script **reorganize_files_rnaseq.sh** in the terminal.
     ├── BAM_Markdown
     │   ├── *dupmark.bam
     │   ├── *dupmark.bai
+    ├── BAM_NMSRT (NMSRT = name sorted)
+    │   │   ├── *nmsrt.bam
     ├── BAM_NODUP
     │   ├── *nodup.bam
     │   ├── *nodup.bai
@@ -252,9 +256,20 @@ follow these steps in the RAW_COUNTS folder:
 This will create a Matrix_Raw_counts.txt file containing the combined
 raw counts data from all samples.
 
+# Create a Multiqc report:
+
+If you wish to create a report of the collected metrics, run the
+following in a ubuntu-terminal job with modules:
+
+    # load multiQC
+    module load MultiQC
+    # Run multiqc in the directory with all the analysis folders:
+    multiqc -c /work/Refereneces/Multiqc/multiqc_config_preseq_human.yaml ./  
+    Note: the yaml config file (-c) is optional and it is design to adjust the genome coverage scale in a plot from Preseq. In case of a study in mouse, there is a mouse version of the yaml file in the same directory.
+
 **Notes:**  
 - Ensure that the necessary modules are available on your cluster.  
 - The script includes Slurm directives to specify resource requirements.
 Review and customize the script based on your specific requirements.  
 - For additional information on individual tools and parameters, refer
-to the documentation for STAR, SAMtools, Picard, and Salmon.
+to their official documentation.

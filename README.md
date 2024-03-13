@@ -52,6 +52,7 @@ Read counting is done by FeatureCounts.
 
 - **Notes:**
   - Match the job CPUs to the amounts requested in the script.
+  - Make sure the scripts have executing permission. If not run: `chmod 700 script.sh`
   - If you modify the memory parameter in the script, specify 5-10% less
     than the memory available in the terminal run.
   - Although it is not necessary to enable **tmux**, it is a good

@@ -1,5 +1,5 @@
 ---
-title: "Quality Control Pipeline of fastq files"
+title: "Bulk RNA-seq Postalignment Pipeline"
 author: "Victor Enrique Goitea"
 date: "2024-03-05"
 output: 
@@ -11,22 +11,16 @@ output:
 This script is designed to process BAM files generated from sequencing data. It performs various quality control (QC) analyses and data preprocessing steps to prepare the data for downstream analysis (read counting bigWig coverage files). The script utilizes several bioinformatics tools and workflows.
 
 # Prerequisites
-*   SLURM scheduler.  
+* SLURM scheduler.  
 *	Modules: SAMtools, Picard tools, Bedtools, Qualimap, Preseq, RNA-SeQC, RSeQC, Subread (FeatureCounts), Homer, Deeptools.  
 *	Reference genomes (provided in /work/References).  
 
 # Usage
-1. Clone Repository and copy the script to your Scripts folder
 
-    ```
-    git clone <repository-url> 
-    cd <repository-directory> 
-    ```
-
-2. Modify SLURM Parameters (Optional): 
+1. Modify SLURM Parameters (Optional): 
     Open the script (**pe_postalign_RNA-seq_multigenome.sh**) and modify SLURM parameters at the beginning of the file, such as account, output file, email notifications, nodes, memory, CPU cores, and runtime. Alternatively, you can modify these parameters on-the-fly when executing the script.
 
-3. On UCloud, start a **Terminal Ubuntu** run: 
+2. On UCloud, start a **Terminal Ubuntu** run: 
    * Enable **Slurm cluster** 
    * To process several samples consider requesting nodes > 1
    * Set the modules path to
@@ -43,24 +37,28 @@ This script is designed to process BAM files generated from sequencing data. It 
 
    * **Notes:** 
      + Match the job CPUs to the amounts requested in the script.
+     + Make sure the scripts have executing permission. If not run: `chmod 700 script.sh`
      + If you modify the memory parameter in the script, specify 5-10% less than the memory available in the terminal run.
      + Although it is not necessary to enable **tmux**, it is a good practise to always do it.
      + The script also uses some files in References/Multiqc/ to make some metric files compatible with Multiqc.
 
-4. **Run the Script:** Submit the script to the SLURM cluster:
+3. **Run the Script:** Submit the script to the SLURM cluster:
+
     ```
     sbatch -J <job_name> path_to/Scripts_folder/pe_postalign_RNA-seq_multigenome.sh -g <mm10|mm39|hg38> <input-bam-file> 
     ```
+
     **Required Arguments**
     * **-g:** specify the genome to use (mm10, mm39, or hg38).
     * Replace **input-bam-file** with the full path to your input FASTQ file (R1).
     
     For several samples you can use a for loop:
+    
     ```
     for i in *.bam; do sbatch -J <job_name> path_to/Scripts_folder/pe_postalign_RNA-seq_multigenome.sh -g <mm10|mm39|hg38> $i; sleep 1; done
     ```
 
-5.	**Monitor Job:** You can monitor the job using the SLURM commands, such as **squeue**, **scontrol show job <job-id>**, and check the log files generated.
+4.	**Monitor Job:** You can monitor the job using the SLURM commands, such as **squeue**, **scontrol show job <job-id>**, and check the log files generated.
 
 # Description
 This script performs the following main tasks:
@@ -76,9 +74,10 @@ This script performs the following main tasks:
 2. **Fixing Coodinates:** for example if chromosome nomenclature is "1", convert to "chr1". It keeps only canonical chromosomes including sex and mitochondrial chromosomes.  
 3. **Filtering and Sorting:** Filters and sorts the processed BAM files to remove low-quality reads and ensure proper alignment (**samtools -q 30 -F 780**).
 4. **Indexing:** indexes the final BAM files.
-5. **Create Tag Directories:** generates a sample tag directory using Homer for downstream analysis.
-6. **Reads Counting:** Count reads mapped to features (e.g., genes) using FeatureCounts (**-p --countReadPairs -t exon**).
-7. **GENCODE GTF Version Information:**
+5. **Bigwig coverage tracks:** generates coverage tracks with bin size 10, RPKM normalized by bamCoverage (Deeptools).
+6. **Create Tag Directories:** generates a sample tag directory using Homer for downstream analysis.
+7. **Reads Counting:** Count reads mapped to features (e.g., genes) using FeatureCounts (**-p --countReadPairs -t exon**).
+8. **GENCODE GTF Version Information:**
    + **Human (GRCh38):** v44
    + **Mouse (GRCm38 - mm10):** M25
    + **Mouse (GRCm39 - mm39):** M33
@@ -87,7 +86,7 @@ This script performs the following main tasks:
 The script generates various output files containing QC metrics, alignment statistics, and processed BAM files ready for downstream analysis.
 The script store the output files in a directory of basename <input-filename> (Main output directory).
 
-**file-featurecounts.txt:** Table containing the output of FeatureCounts.
+**file-featurecounts.txt:** Table containing the output of FeatureCounts.  
 **file-RawCounts.txt:** Two-column table containing GeneID and raw counts.
 
 # Output files reorganization (optional)
@@ -108,6 +107,8 @@ After running the script for all samples, each sample will have its own folder w
 ├── BAM_Markdown
 │   ├── *dupmark.bam
 │   ├── *dupmark.bai
+├── BAM_NMSRT (NMSRT = name sorted)
+│   │   ├── *nmsrt.bam
 ├── BAM_NODUP
 │   ├── *nodup.bam
 │   ├── *nodup.bai
@@ -206,8 +207,19 @@ paste ./*RawCounts.txt | tail -n +2 | awk 'BEGIN{FS="\t"; OFS=FS}{for (i=3;i<=NF
 ```
 This will create a Matrix_Raw_counts.txt file containing the combined raw counts data from all samples.
 
+# Create a Multiqc report:
+If you wish to create a report of the collected metrics, run the following in a ubuntu-terminal job with modules:
+
+```
+# load multiQC
+module load MultiQC
+# Run multiqc in the directory with all the analysis folders:
+multiqc -c /work/Refereneces/Multiqc/multiqc_config_preseq_human.yaml ./  
+Note: the yaml config file (-c) is optional and it is design to adjust the genome coverage scale in a plot from Preseq. In case of a study in mouse, there is a mouse version of the yaml file in the same directory.
+```
+
 **Notes:**  
    - Ensure that the necessary modules are available on your cluster.  
    - The script includes Slurm directives to specify resource requirements. Review and customize the script based on your specific requirements.  
-   - For additional information on individual tools and parameters, refer to the documentation for STAR, SAMtools, Picard, and Salmon.
+   - For additional information on individual tools and parameters, refer to their official documentation.
   

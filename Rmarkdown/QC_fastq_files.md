@@ -3,7 +3,6 @@ Quality Control Pipeline of fastq files
 Victor Enrique Goitea
 2024-03-01
 
-- [Quality Control Pipeline of fastq files](#quality-control-pipeline-of-fastq-files)
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Usage](#usage)
@@ -25,20 +24,13 @@ on a SLURM-based cluster.
 
 # Usage
 
-1.  Clone Repository and copy the script to your Scripts folder
-
-<!-- -->
-
-    git clone <repository-url> 
-    cd <repository-directory> 
-
-2.  Modify SLURM Parameters (Optional): Open the script
+1.  **Modify SLURM Parameters (Optional):** Open the script
     (**pe_qc_fastq.sh**) and modify SLURM parameters at the beginning of
     the file, such as account, output file, email notifications, nodes,
     memory, CPU cores, and runtime. Alternatively, you can modify these
     parameters on-the-fly when executing the script.
 
-3.  On UCloud, start a **Terminal Ubuntu** run:
+2.  On UCloud, start a **Terminal Ubuntu** run:
 
     - Enable **Slurm cluster**
     - To process several samples consider requesting nodes \> 1
@@ -55,6 +47,8 @@ on a SLURM-based cluster.
 - **Notes:**
 
   - Match the job CPUs to the amounts requested in the script.
+  - Make sure the scripts have executing permission. If not run:
+    `chmod 700 script.sh`
   - If you modify the memory parameter in the script, specify 5-10% less
     than the memory available in the terminal run.
   - Although it is not necessary to enable **tmux**, it is a good
@@ -62,7 +56,7 @@ on a SLURM-based cluster.
   - The configuration file of Fastq_Sreen is also located in the
     /References folder.
 
-4.  **Run the Script:** Submit the script to the SLURM cluster:
+3.  **Run the Script:** Submit the script to the SLURM cluster:
 
         sbatch -J <job_name> path_to/Scripts_folder/pe_qc_fastq.sh <input-R1_001.fastq.gz-file> 
 
@@ -73,7 +67,7 @@ on a SLURM-based cluster.
 
         for i in *R1_001.fastq.gz; do sbatch -J <job_name> path_to/Scripts_folder/pe_qc_fastq.sh $i; sleep 1; done
 
-5.  **Monitor Job:** You can monitor the job using the SLURM commands,
+4.  **Monitor Job:** You can monitor the job using the SLURM commands,
     such as squeue, scontrol show job <job-id>, and check the log files
     generated.
 
@@ -88,4 +82,6 @@ The script creates a directory structure for output files:
 
 **Notes:**  
 - Ensure that the necessary modules are available on your cluster.  
-- Review and customize the script based on your specific requirements.
+- Review and customize the script based on your specific requirements.  
+- For additional information on individual tools and parameters, refer
+to the documentation for Fastqc, Fastq_Screen and AdapterRemovalv2.
