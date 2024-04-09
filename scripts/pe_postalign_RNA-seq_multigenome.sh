@@ -45,6 +45,10 @@ echo "${MEM} G total mem"
 echo "${MEM_PER_THREAD} G mem per thread"
 echo "Samtools sorting conditions: ${SAM_THREADS} threads and ${MEM_SAMTOOLS} G Mem Per Thread"
 
+# Install command-line calculator bc
+sudo apt-get update -y
+sudo apt-get install -y bc
+
 ## Read optional arguments    
 function usage {
   echo -e "\n Usage:$(basename $0) -g <genome>  <input_files>"
@@ -159,6 +163,8 @@ HEADER_PBC=/work/References/Multiqc/pbc_libcomp_header.txt
 
 # Output Files
 
+INFER_EXP="$(basename "${RAW_BAM_FILE}" bam)qc.rseqc.infer_experiment.txt" # QC file for multiQC
+
 INITIAL_BAM_FILE_SAMSTATS="$(basename "${RAW_BAM_FILE}" bam)samstat.qc.txt" # QC file for multiQC
 INITIAL_BAM_FILE_IDXSTATS="$(basename "${RAW_BAM_FILE}" bam)idxstat.qc.txt" # QC file for multiQC
 INITIAL_BAM_FILE_MAPSTATS="$(basename "${RAW_BAM_FILE}" bam)flagstat.qc.txt" # QC file
@@ -170,7 +176,6 @@ QBYCYCLE_PICARDMETRICS="$(basename "${RAW_BAM_FILE}" bam)QByCycle.picardMetrics.
 CHART_QBYCYCLE_PICARDMETRICS="$(basename "${RAW_BAM_FILE}" bam)QByCycle.picardMetrics.qc.pdf" # QC graph
 RNASEQ_PICARDMETRICS="$(basename "${RAW_BAM_FILE}" bam)CollectRnaSeqMetrics.picardMetrics.qc.txt"	# QC file
 CHART_RNASEQ_PICARDMETRICS="$(basename "${RAW_BAM_FILE}" bam)CollectRnaSeqMetrics.picardMetrics.qc.pdf"	# QC graph
-
 
 # Only for Pair-End
 INSERTSIZE_PICARDMETRICS="$(basename "${RAW_BAM_FILE}" bam)InsertSize.picardMetrics.qc.txt" # QC file
@@ -218,6 +223,43 @@ FINAL_BAM_INDEX_FILE="$(basename "${RAW_BAM_FILE}" bam)nodup.bai"	# Index File
 COUNTS_FULL_TABLE="$(basename "${RAW_BAM_FILE}" bam)featurecounts.txt" # Table of multiples columns containing geneIDs, several annotated features and raw counts
 FINAL_COUNTS="$(basename "${RAW_BAM_FILE}" bam)RawCounts.txt"	# Two columns table: GeneID/ RawCounts
 
+
+# ===============================================
+# Determine Strandedness
+# ================================================
+
+module load SAMtools RSeQC
+
+echo "Determine Strandedness...RSeQC:Inferexperiment.py..."
+START_SUBPROCESS=$(date +%s)
+
+infer_experiment.py -i ${RAW_BAM_FILE} -r ${REF_GENE_MODEL} > "${INFER_EXP}"
+
+# Read fractions from file (remove leading and trailing whitespace)
+FRACTION_FR=$(awk '/Fraction of reads explained by/ && /1\+\+,1\-\-,2\+\-,2\-\+/ {print $NF; exit}' "${INFER_EXP}" | tr -d '[:space:]')
+FRACTION_RF=$(awk '/Fraction of reads explained by/ && /1\+\-,1\-\+,2\+\+,2\-\-/ {print $NF; exit}' "${INFER_EXP}" | tr -d '[:space:]') 
+
+# Check conditions and perform actions
+if (( $(echo "${FRACTION_FR} < 0.2" | bc -l) )) && (( $(echo "${FRACTION_RF} > 0.8" | bc -l) )); then
+    echo "Data is reverse stranded"
+    STRAND_SPECIFIC=true
+    STRAND_PROTOCOL="reverse"
+elif (( $(echo "${FRACTION_FR} > 0.8" | bc -l) )) && (( $(echo "${FRACTION_RF} > 0.2" | bc -l) )); then
+    echo "Data is foward stranded"
+    STRAND_SPECIFIC=true
+    STRAND_PROTOCOL="forward"
+else
+    echo "Data is non-stranded"
+    # Default action
+    echo "Performing default action"
+fi
+
+END_SUBPROCESS=$(date +%s)
+RUNTIME_SUBPROCESS=$((END_SUBPROCESS-START_SUBPROCESS))
+H=$((RUNTIME_SUBPROCESS / 3600 ))  # Calculate hours
+M=$(((RUNTIME_SUBPROCESS / 60 ) % 60 ))  # Calculate minutes
+S=$((RUNTIME_SUBPROCESS % 60 ))  # Calculate seconds
+echo -e "Status: Done! Used ${H} hours, ${M} minutes, and ${S} seconds."
 
 # ===============================================
 # Flagstat
@@ -328,8 +370,19 @@ module load Qualimap
 echo "qualimap..."
 START_SUBPROCESS=$(date +%s)
 
+if [ "${STRAND_SPECIFIC}" = true ] && [ "${STRAND_PROTOCOL}" = "reverse" ]; then
+qualimap rnaseq -bam ${RAW_BAM_FILE} -gtf ${GENE} -outdir ./${NAME}.qc.qualimap -pe --java-mem-size="${MEM}G" -p strand-specific-reverse
+qualimap bamqc -bam ${RAW_BAM_FILE} -c -outdir ./${NAME}.qc.qualimap.bamqc -nt "${OMP_NUM_THREADS}" --java-mem-size="${MEM}G" -p strand-specific-reverse
+
+elif [ "${STRAND_SPECIFIC}" = true ] && [ "${STRAND_PROTOCOL}" = "forward" ]; then
+qualimap rnaseq -bam ${RAW_BAM_FILE} -gtf ${GENE} -outdir ./${NAME}.qc.qualimap -pe --java-mem-size="${MEM}G" -p strand-specific-forward
+qualimap bamqc -bam ${RAW_BAM_FILE} -c -outdir ./${NAME}.qc.qualimap.bamqc -nt "${OMP_NUM_THREADS}" --java-mem-size="${MEM}G" -p strand-specific-forward
+
+else
 qualimap rnaseq -bam ${RAW_BAM_FILE} -gtf ${GENE} -outdir ./${NAME}.qc.qualimap -pe --java-mem-size="${MEM}G"
 qualimap bamqc -bam ${RAW_BAM_FILE} -c -outdir ./${NAME}.qc.qualimap.bamqc -nt "${OMP_NUM_THREADS}" --java-mem-size="${MEM}G"
+
+fi
 
 END_SUBPROCESS=$(date +%s)
 RUNTIME_SUBPROCESS=$((END_SUBPROCESS-START_SUBPROCESS))
@@ -344,7 +397,13 @@ module load RNA-SeQC
 echo "RNA-SeQC..."
 START_SUBPROCESS=$(date +%s)
 
+if [ "${STRAND_SPECIFIC}" = true ] && [ "${STRAND_PROTOCOL}" = "reverse" ]; then
+rnaseqc --stranded='RF' ${GENE_RNASEQC} ${RAW_BAM_FILE} ./${NAME}.qc.rnaseqc
+elif [ "${STRAND_SPECIFIC}" = true ] && [ "${STRAND_PROTOCOL}" = "forward" ]; then
+rnaseqc --stranded='FR' ${GENE_RNASEQC} ${RAW_BAM_FILE} ./${NAME}.qc.rnaseqc
+else
 rnaseqc ${GENE_RNASEQC} ${RAW_BAM_FILE} ./${NAME}.qc.rnaseqc
+fi
 
 END_SUBPROCESS=$(date +%s)
 RUNTIME_SUBPROCESS=$((END_SUBPROCESS-START_SUBPROCESS))
@@ -366,7 +425,6 @@ junction_annotation.py -i ${RAW_BAM_FILE} -o "${NAME}.qc.rseqc" -r ${REF_GENE_MO
 junction_saturation.py -i ${RAW_BAM_FILE} -o "${NAME}.qc.rseqc" -r ${REF_GENE_MODEL} # *.junctionSaturation_plot.r"
 
 bam_stat.py -i ${RAW_BAM_FILE} > "${NAME}.qc.rseqc.bam_stat.txt"
-infer_experiment.py -i ${RAW_BAM_FILE} -r ${REF_GENE_MODEL} > "${NAME}.qc.rseqc.infer_experiment.txt"
 read_distribution.py -i ${RAW_BAM_FILE} -r ${REF_GENE_MODEL} > "${NAME}.qc.rseqc.read_distribution.txt"
 
 samtools index ${RAW_BAM_FILE} "${RAW_BAM_FILE}.bai"
@@ -539,10 +597,26 @@ module load Subread
 echo "****Running featureCounts****"
 
 START_SUBPROCESS=$(date +%s)
+
+if [ "${STRAND_SPECIFIC}" = true ] && [ "${STRAND_PROTOCOL}" = "reverse" ]; then
+
+featureCounts -p --countReadPairs -s 2 -t exon -T "${OMP_NUM_THREADS}" -a "${GENE}" -o "${COUNTS_FULL_TABLE}" ${FINAL_NMSRT_MARKDUP_BAM_FILE}
+# awk '{print $1"\t"$7}' ${COUNTS_FULL_TABLE} > ${FINAL_COUNTS}	# Two Columns GeneID/Raw Counts by FeatureCounts
+cut --complement -f2-6 ${COUNTS_FULL_TABLE} | tail -n +2 > "${FINAL_COUNTS}" # Two Columns GeneID/Raw Counts by FeatureCounts and remove the first line (Feature Count header)
+
+elif [ "${STRAND_SPECIFIC}" = true ] && [ "${STRAND_PROTOCOL}" = "forward" ]; then
+
+featureCounts -p --countReadPairs -s 1 -t exon -T "${OMP_NUM_THREADS}" -a "${GENE}" -o "${COUNTS_FULL_TABLE}" ${FINAL_NMSRT_MARKDUP_BAM_FILE}
+# awk '{print $1"\t"$7}' ${COUNTS_FULL_TABLE} > ${FINAL_COUNTS}	# Two Columns GeneID/Raw Counts by FeatureCounts
+cut --complement -f2-6 ${COUNTS_FULL_TABLE} | tail -n +2 > "${FINAL_COUNTS}" # Two Columns GeneID/Raw Counts by FeatureCounts and remove the first line (Feature Count header)
+
+else
+
 featureCounts -p --countReadPairs -t exon -T "${OMP_NUM_THREADS}" -a "${GENE}" -o "${COUNTS_FULL_TABLE}" ${FINAL_NMSRT_MARKDUP_BAM_FILE}
 # awk '{print $1"\t"$7}' ${COUNTS_FULL_TABLE} > ${FINAL_COUNTS}	# Two Columns GeneID/Raw Counts by FeatureCounts
-
 cut --complement -f2-6 ${COUNTS_FULL_TABLE} | tail -n +2 > "${FINAL_COUNTS}" # Two Columns GeneID/Raw Counts by FeatureCounts and remove the first line (Feature Count header)
+
+fi
 
 END_SUBPROCESS=$(date +%s)
 RUNTIME_SUBPROCESS=$((END_SUBPROCESS-START_SUBPROCESS))

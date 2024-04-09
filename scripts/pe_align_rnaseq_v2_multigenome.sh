@@ -205,6 +205,7 @@ if [ "${INCLUDE_SALMON}" = true ]; then
 
   echo "Salmon..."
   START_SUBPROCESS=$(date +%s)
+  # -l/--libType: automatically infer the library type
   # --seqBias: learn and correct for sequence-specific biases in the input data
   # --useVBOpt: use variational Bayesian EM algorithm.
   # --numBootstraps: compute bootstrapped abundance estimates. Required for isoform level DGE analysis for estimation of technical variance.

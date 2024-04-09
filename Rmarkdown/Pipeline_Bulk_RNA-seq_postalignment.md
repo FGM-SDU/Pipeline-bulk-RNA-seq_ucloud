@@ -19,7 +19,7 @@ Victor Enrique Goitea
 This script is designed to process BAM files generated from sequencing
 data. It performs various quality control (QC) analyses and data
 preprocessing steps to prepare the data for downstream analysis (read
-counting bigWig coverage files). The script utilizes several
+counting, bigWig coverage files). The script utilizes several
 bioinformatics tools and workflows.
 
 # Prerequisites
@@ -65,7 +65,7 @@ bioinformatics tools and workflows.
         some metric files compatible with Multiqc.
 
 3.  **Run the Script:** Submit the script to the SLURM cluster:
-    <!-- -->
+
         sbatch -J <job_name> path_to/Scripts_folder/pe_postalign_RNA-seq_multigenome.sh -g <mm10|mm39|hg38> <input-bam-file> 
 
     **Required Arguments**
@@ -75,7 +75,7 @@ bioinformatics tools and workflows.
       file (R1).
 
     For several samples you can use a for loop:
-    <!-- -->
+
         for i in *.bam; do sbatch -J <job_name> path_to/Scripts_folder/pe_postalign_RNA-seq_multigenome.sh -g <mm10|mm39|hg38> $i; sleep 1; done
 
 4.  **Monitor Job:** You can monitor the job using the SLURM commands,
@@ -86,7 +86,11 @@ bioinformatics tools and workflows.
 
 This script performs the following main tasks:
 
-1.  **Extensive quality control:**
+1.  **Strandedness determination:** based on the results, it
+    automatically proceeds accordingly, i.e. reverse-stranded,
+    forward-stranded or non-stranded setups. Tools strandness aware
+    include Qualimap RNA-SeQC and featureCounts.
+2.  **Extensive quality control:**
     - **Samtools:** stats, idxstats, flagstat.
     - **Picard:** CollectAlignmentSummaryMetrics,
       QualityScoreDistribution, MeanQualityByCycle,
@@ -99,20 +103,20 @@ This script performs the following main tasks:
         junction_annotation, junction_saturation, bam_stat,
         infer_experiment, read_distribution, geneBody_coverage, tin.
     - **Library Complexity Estimation:** Preseq, Picard and PBC metrics.
-2.  **Fixing Coodinates:** for example if chromosome nomenclature is
+3.  **Fixing Coodinates:** for example if chromosome nomenclature is
     “1”, convert to “chr1”. It keeps only canonical chromosomes
     including sex and mitochondrial chromosomes.  
-3.  **Filtering and Sorting:** Filters and sorts the processed BAM files
+4.  **Filtering and Sorting:** Filters and sorts the processed BAM files
     to remove low-quality reads and ensure proper alignment (**samtools
     -q 30 -F 780**).
-4.  **Indexing:** indexes the final BAM files.
-5.  **Bigwig coverage tracks:** generates coverage tracks with bin size
+5.  **Indexing:** indexes the final BAM files.
+6.  **Bigwig coverage tracks:** generates coverage tracks with bin size
     10, RPKM normalized by bamCoverage (Deeptools).
-6.  **Create Tag Directories:** generates a sample tag directory using
+7.  **Create Tag Directories:** generates a sample tag directory using
     Homer for downstream analysis.
-7.  **Reads Counting:** Count reads mapped to features (e.g., genes)
+8.  **Reads Counting:** Count reads mapped to features (e.g., genes)
     using FeatureCounts (**-p –countReadPairs -t exon**).
-8.  **GENCODE GTF Version Information:**
+9.  **GENCODE GTF Version Information:**
     - **Human (GRCh38):** v44
     - **Mouse (GRCm38 - mm10):** M25
     - **Mouse (GRCm39 - mm39):** M33
@@ -124,8 +128,10 @@ alignment statistics, and processed BAM files ready for downstream
 analysis. The script store the output files in a directory of basename
 <input-filename> (Main output directory).
 
-**file-featurecounts.txt:** Table containing the output of FeatureCounts.  
-**file-RawCounts.txt:** Two-column table containing GeneID and raw counts.
+**file-featurecounts.txt:** Table containing the output of
+FeatureCounts.  
+**file-RawCounts.txt:** Two-column table containing GeneID and raw
+counts.
 
 # Output files reorganization (optional)
 
@@ -263,6 +269,7 @@ following in a ubuntu-terminal job with modules:
 
     # load multiQC
     module load MultiQC
+    
     # Run multiqc in the directory with all the analysis folders:
     multiqc -c /work/Refereneces/Multiqc/multiqc_config_preseq_human.yaml ./  
     Note: the yaml config file (-c) is optional and it is design to adjust the genome coverage scale in a plot from Preseq. In case of a study in mouse, there is a mouse version of the yaml file in the same directory.
