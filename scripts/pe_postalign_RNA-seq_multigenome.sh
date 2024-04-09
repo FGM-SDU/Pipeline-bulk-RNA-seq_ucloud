@@ -124,7 +124,7 @@ else
   exit 1
 fi
 
-echo "Using reference: ${REFERENCE}"
+echo -e "\nUsing reference genome: ${REFERENCE}\nUsing Gencode annotations: ${GENE}\n"
 
 # Input Files
 if [ $# -eq 0 ]; then
