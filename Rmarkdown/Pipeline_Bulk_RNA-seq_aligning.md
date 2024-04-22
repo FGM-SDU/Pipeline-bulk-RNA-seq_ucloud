@@ -3,7 +3,6 @@ Bulk RNA-seq Alignment Pipeline
 Victor Enrique Goitea
 2024-03-04
 
-- [Bulk RNA-seq Alignment Pipeline](#bulk-rna-seq-alignment-pipeline)
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Usage](#usage)
@@ -59,7 +58,7 @@ isoform level DGE analysis.
 
 3.  **Run the Script:** Submit the script to the SLURM cluster:
 
-        sbatch -J <job_name> path_to/Scripts_folder/pe_align_rnaseq_v2_multigenome.sh -g <mm10|mm39|hg38> <input-R1_001.fastq.gz-file> 
+        sbatch -J <job_name> path_to/Scripts_folder/pe_align_rnaseq_v2_multigenome.sh -g <mm10|mm39|hg38> <input-R1_001.fastq.gz-file> -t
 
     **Required Arguments**
 
@@ -70,10 +69,10 @@ isoform level DGE analysis.
     **Optional Arguments**
 
     - **-t:** include Salmon alignment for isoform-level differential
-      gene expression.
+      gene expression. Include the flag “-t” after the input file.
 
     For several samples you can use a for loop:
-    <!-- -->
+
         for i in *R1_001.fastq.gz; do sbatch -J <job_name> path_to/Scripts_folder/pe_align_rnaseq_v2_multigenome.sh -g <mm10|mm39|hg38> $i; sleep 1; done
 
 4.  **Monitor Job:** You can monitor the job using the SLURM commands,

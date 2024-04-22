@@ -50,7 +50,7 @@ INCLUDE_SALMON=false  # Default value for the -t flag
 
 ## Read optional arguments    
 function usage {
-  echo -e "\n Usage:$(basename $0) -g <genome> <input_files>"
+  echo -e "\n Usage:$(basename $0) -g <genome> <input_files> -t"
   echo "Options:"
   echo " -g <genome>   - Specify the genome (mm10, mm39, hg38)"
   echo "Optional argument:"

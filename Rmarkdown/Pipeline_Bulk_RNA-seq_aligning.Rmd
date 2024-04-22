@@ -45,14 +45,14 @@ This bash script is designed for running a RNA-seq alignment on a SLURM cluster.
 3. **Run the Script:** Submit the script to the SLURM cluster:
 
     ```
-    sbatch -J <job_name> path_to/Scripts_folder/pe_align_rnaseq_v2_multigenome.sh -g <mm10|mm39|hg38> <input-R1_001.fastq.gz-file> 
+    sbatch -J <job_name> path_to/Scripts_folder/pe_align_rnaseq_v2_multigenome.sh -g <mm10|mm39|hg38> <input-R1_001.fastq.gz-file> -t
     ```
     **Required Arguments**
     * **-g:** specify the genome to use (mm10, mm39, or hg38).
     * Replace **input-R1_001.fastq.gz-file** with the full path to your input FASTQ file (R1).
     
     **Optional Arguments**
-    * **-t:** include Salmon alignment for isoform-level differential gene expression.
+    * **-t:** include Salmon alignment for isoform-level differential gene expression. Include the flag "-t" after the input file.
 
     For several samples you can use a for loop:
 
