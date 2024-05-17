@@ -22,7 +22,7 @@ Runs FASTQC, Fastq_Screen and AdapterRemoval2.
 3. [**Postalignment of BAM files - Read counting**](https://github.com/FGM-SDU/Pipeline-bulk-RNA-seq_ucloud/blob/main/Rmarkdown/Pipeline_Bulk_RNA-seq_postalignment.md)
 Read counting is done by FeatureCounts.
 
-4. [**Organize files by category**](https://github.com/FGM-SDU/Pipeline-bulk-RNA-seq_ucloud/blob/main/Rmarkdown/Pipeline_Bulk_RNA-seq_postalignment.md)
+4. [**Organize files by category**](https://github.com/FGM-SDU/Pipeline-bulk-RNA-seq_ucloud/blob/main/Rmarkdown/Pipeline_Bulk_RNA-seq_postalignment.md#output-files-reorganization-optional)
 
 ## General Usage
 1.  Clone Repository and copy the script to your Scripts folder
