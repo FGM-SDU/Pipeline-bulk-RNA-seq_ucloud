@@ -271,7 +271,7 @@ following in a ubuntu-terminal job with modules:
     module load MultiQC
     
     # Run multiqc in the directory with all the analysis folders:
-    multiqc -c /work/Refereneces/Multiqc/multiqc_config_preseq_human.yaml ./  
+    multiqc -c /work/References/Multiqc/multiqc_config_preseq_human.yaml ./  
     Note: the yaml config file (-c) is optional and it is design to adjust the genome coverage scale in a plot from Preseq. In case of a study in mouse, there is a mouse version of the yaml file in the same directory.
 
 **Notes:**  
